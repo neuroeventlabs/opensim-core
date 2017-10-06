@@ -8,15 +8,6 @@ sudo: false
     
 matrix:
   include:
-    - os: linux
-      compiler: clang
-      env: BTYPE=RelWithDebInfo WRAP=on  DOXY=on  NPROC=3 DEPLOY=yes
-    - os: linux
-      compiler: gcc
-      env: BTYPE=RelWithDebInfo WRAP=off DOXY=off NPROC=3 DEPLOY=no
-    - os: linux
-      compiler: clang
-      env: BTYPE=Debug          WRAP=off DOXY=off NPROC=3 DEPLOY=no
     - os: osx
       compiler: clang
       env: BTYPE=RelWithDebInfo WRAP=on  DOXY=on  NPROC=2 DEPLOY=yes
@@ -201,6 +192,8 @@ install:
   - OSIM_CMAKE_ARGS+=(-DOPENSIM_DOXYGEN_USE_MATHJAX=off -DOPENSIM_SIMBODY_DOXYGEN_LOCATION="https://simtk.org/api_docs/simbody/latest/")
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then OSIM_CMAKE_ARGS+=(-DDOXYGEN_EXECUTABLE=$HOME/doxygen/doxygen-1.8.10/bin/doxygen); fi
   
+  - OSIM_CMAKE_ARGS+=(-DBUILD_TESTING=off) # TODO
+  
   - printf '%s\n' "${OSIM_CMAKE_ARGS[@]}"
   - cmake "${OSIM_CMAKE_ARGS[@]}"
   
@@ -218,7 +211,7 @@ script:
   # TODO On Debug, we need to tell travis not to timeout if it doesn't get
   # any output for more than 10 minutes. We do this using "travis_wait".
   #- if [ "$BTYPE" = "Debug" ]; export NO_TIMEOUT="travis_wait"; fi
-  - ctest -j8 --output-on-failure $CTEST_FLAGS --exclude-regex $TESTS_TO_EXCLUDE
+  # TODO - ctest -j8 --output-on-failure $CTEST_FLAGS --exclude-regex $TESTS_TO_EXCLUDE
 
   ## Print out valgrind output.
   - if [ $RUN_VALGRIND ]; then find Testing/Temporary -name "MemoryCheck*" -print | xargs cat; fi
@@ -284,7 +277,7 @@ before_deploy:
   # Zip up the installation using a file name that identifies where
   # the binaries were built.
   - mkdir ~/to_deploy
-  - ZIPNAME=opensim-core-latest_${TRAVIS_OS_NAME}_${BTYPE}.zip
+  - ZIPNAME=opensim-core-latest_${TRAVIS_OS_NAME}_${BTYPE}_temp.zip
   # Zip up opensim relative to where it's installed.
   - cd $OPENSIM_HOME/../
   # Leave symlinks intact.
